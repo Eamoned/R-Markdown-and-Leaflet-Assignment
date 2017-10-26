@@ -1,0 +1,49 @@
+---
+title: "Dive Sites"
+author: "Eamon Corr"
+date: "26 October 2017"
+output: html_document
+---
+###South Australia Dive Sites
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, eval=TRUE}
+library(leaflet)
+df <- read.csv('diveSites.csv')
+
+diveLatLong <- df[,c('Lat','Lng')]
+
+#Function for popup text
+popUpFunct<- function(region,sitename,depth){
+  #depth <- depth
+  region <- as.character(region)
+  sitename <- as.character(sitename)
+  out <- region
+  for (i in 1:length(region)){
+      if (region[i] == 'Metropolitan') {
+        out[i] <- paste("<a href='http://www.sdfsa.net/adelaide_metro.htm'>",sitename[i],":","MaxDepth",depth[i], "</a>")
+        
+      }else if (region[i] == 'Fleurieu Peninsula') {
+        out[i] <- paste("<a href='http://www.sdfsa.net/fleurieu.htm'>",sitename[i],":","MaxDepth",depth[i], "</a>")
+      
+      }else {
+        out[i] <- paste("<a href='http://www.sdfsa.net/yorke_peninsula.htm'>",sitename[i],":","MaxDepth",depth[i], "</a>")
+      }
+        
+  }
+  return(out)
+}
+popUpText <- popUpFunct(df$Region,df$SiteName,df$Max.Depth)
+
+diveLatLong %>% 
+  leaflet() %>%
+  addTiles() %>%
+  #addMarkers(popup = diveSites) # icon = ? or clusterOptions = markerClusterOptions()
+  #addCircleMarkers()
+  addCircles(weight = 3, radius = df$Max.Depth * 120, popup = popUpText, col=df$col) %>%
+  addLegend(labels = c('Open Water', 'Advanced', 'Circle Radius ~ MaxDepth' ), colors = c('green', 'orange', 'white'))
+  
+```
